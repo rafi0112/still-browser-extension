@@ -3,6 +3,25 @@
 **Make progress. Without the pressure.**
 *Your goals are still waiting for you.*
 
+<p align="center">
+  <a href="docs/still-intro-bn.mp4">
+    <img src="docs/still-preview.gif" alt="STILL. — ভিডিও দেখুন (বাংলা): কেন, কী করে, আর কীভাবে সেটআপ করবেন" width="760">
+  </a>
+</p>
+
+<p align="center">
+  ▶️ <b><a href="docs/still-intro-bn.mp4">পুরো ভিডিও দেখুন (বাংলা, ~৪ মিনিট)</a></b> — কেন STILL., কী কী করে, আর নিজের ব্রাউজারে শুরু থেকে শেষ পর্যন্ত সেটআপ।<br>
+  <sub>Full walkthrough video in Bangla · <a href="docs/video-script-bn.md">স্ক্রিপ্ট পড়ুন / Read the script</a> · <a href="https://github.com/rafi0112/still-browser-extension/raw/main/docs/still-intro-bn.mp4">Download MP4</a></sub>
+</p>
+
+### দ্রুত সেটআপ (বাংলা)
+
+1. উপরের সবুজ **Code** বাটন → **Download ZIP** → ফাইলটি আনজিপ করে একটা স্থায়ী ফোল্ডারে রাখুন।
+2. Chrome-এ `chrome://extensions` (Edge-এ `edge://extensions`) খুলে **Developer mode** চালু করুন।
+3. **Load unpacked** চাপুন → যে ফোল্ডারে `manifest.json` আছে সেটা সিলেক্ট করুন।
+4. সেটআপ উইজার্ড নিজে থেকে খুলবে — ওয়েবসাইট, অ্যানিমেশন, ইমোজি, নিজের বার্তা আর সময় বেছে **Finish Setup** চাপুন।
+5. 🧩 পাজল আইকন থেকে STILL. পিন করে নিন।
+
 STILL. is a mindful-browsing extension for Chrome and Microsoft Edge (Manifest V3). On the websites you choose, it floats gentle, animated reminders up the screen — your own sentences, a few emojis — the way reactions drift up a live stream. It never blocks a page, closes a tab or forces a break. Everything stays on your device.
 
 ---
