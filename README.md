@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  ▶️ <b><a href="docs/still-intro-bn.mp4">পুরো ভিডিও দেখুন (বাংলা, ~৪ মিনিট)</a></b> — কেন STILL., কী কী করে, আর নিজের ব্রাউজারে শুরু থেকে শেষ পর্যন্ত সেটআপ।<br>
+  ▶️ <b><a href="docs/still-intro-bn.mp4">পুরো প্রোমো ভিডিও দেখুন (বাংলা, ~৪ মিনিট)</a></b> — কেন STILL., কী কী করে, আর নিজের ব্রাউজারে শুরু থেকে শেষ পর্যন্ত সেটআপ।<br>
   <sub>Full walkthrough video in Bangla · <a href="docs/video-script-bn.md">স্ক্রিপ্ট পড়ুন / Read the script</a> · <a href="https://github.com/rafi0112/still-browser-extension/raw/main/docs/still-intro-bn.mp4">Download MP4</a></sub>
 </p>
 
