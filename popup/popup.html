@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>STILL.</title>
+    <link rel="stylesheet" href="../shared/ui.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="p-head">
+      <div class="logo p-logo">STILL<i>.</i></div>
+      <div class="row" style="gap: 4px">
+        <span id="masterWrap" title="STILL. on / off"></span>
+        <button class="icon-btn" id="openSettings" type="button" title="Settings" aria-label="Open settings"></button>
+      </div>
+    </header>
+
+    <section id="setup" class="p-setup" hidden>
+      <div class="seal" id="setupSeal"></div>
+      <h2 class="display">Let’s set you up.</h2>
+      <p class="muted">Choose your websites, words and rhythm. STILL. stays quiet until setup is finished.</p>
+      <button class="btn primary lg" id="startSetup" type="button">Start setup</button>
+    </section>
+
+    <section id="main" hidden>
+      <div class="p-hero">
+        <div class="row between">
+          <div class="p-greet display" id="greet">Hello.</div>
+          <span class="p-state" id="statePill"><span class="status-dot" id="dot"></span><span id="state">Active</span></span>
+        </div>
+        <div id="intentMount" class="p-intent"></div>
+        <div class="p-today">
+          <div>
+            <div class="p-big display" id="todayTotal">0m</div>
+            <div class="muted small" id="todaySub">on your sites today</div>
+          </div>
+          <div class="p-bars" id="bars"></div>
+        </div>
+      </div>
+
+      <div id="focusMount" class="p-focus"></div>
+
+      <div class="p-site card" id="siteCard">
+        <div class="row" style="gap: 11px">
+          <span class="site-glyph" id="siteGlyph">·</span>
+          <div class="grow" style="min-width: 0">
+            <div class="p-host" id="host">—</div>
+            <div class="muted small" id="hostSub"></div>
+          </div>
+          <div class="p-timer" id="timerWrap" hidden>
+            <div class="p-time" id="time">0s</div>
+            <div class="muted small">this visit</div>
+          </div>
+          <span id="siteToggleWrap"></span>
+        </div>
+        <div class="p-plan" id="plan" hidden>
+          <div class="row between small"><span class="muted" id="planText"></span><span id="planPct"></span></div>
+          <div class="in-progress sm"><span id="planBar"></span></div>
+        </div>
+      </div>
+
+      <div class="p-actions">
+        <button class="p-act" id="pause15" type="button"><span class="ic" data-icon="pause"></span><span>Pause 15m</span></button>
+        <button class="p-act" id="pause60" type="button"><span class="ic" data-icon="clock"></span><span>Pause 1h</span></button>
+        <button class="p-act resume" id="resume" type="button" hidden><span class="ic" data-icon="play"></span><span>Resume now</span></button>
+        <button class="p-act" id="breathe" type="button"><span class="ic" data-icon="wind"></span><span>Breathe</span></button>
+        <button class="p-act primary" id="preview" type="button"><span class="ic" data-icon="sparkles"></span><span>Preview</span></button>
+      </div>
+      <div class="field-error p-err" id="err" role="alert"></div>
+    </section>
+
+    <footer class="p-foot">
+      <button class="btn ghost sm" data-open="insights" type="button">Insights</button>
+      <button class="btn ghost sm" data-open="studio" type="button">Studio</button>
+      <button class="btn ghost sm" data-open="general" type="button">Settings</button>
+      <span class="grow"></span>
+      <span class="muted small" id="version"></span>
+    </footer>
+
+    <script src="../shared/defaults.js"></script>
+    <script src="../shared/utils.js"></script>
+    <script src="../shared/storage.js"></script>
+    <script src="../shared/ui.js"></script>
+    <script src="../shared/insights.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

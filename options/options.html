@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>STILL. Settings</title>
+    <link rel="icon" href="../assets/icons/icon-32.png" />
+    <link rel="stylesheet" href="../shared/ui.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="side">
+        <div class="logo side-logo">STILL<i>.</i></div>
+        <nav class="nav" id="nav" aria-label="Settings sections"></nav>
+        <div class="side-foot" id="sideFoot"></div>
+      </aside>
+
+      <main class="main">
+        <header class="main-head">
+          <div>
+            <div class="eyebrow" id="crumb">Settings</div>
+            <h1 class="display" id="title"></h1>
+            <p class="muted" id="subtitle"></p>
+          </div>
+          <div id="saved"></div>
+        </header>
+        <div class="content" id="content"></div>
+      </main>
+
+      <aside class="preview-col" id="previewCol">
+        <div class="preview-sticky">
+          <div class="row between" style="margin-bottom: 10px">
+            <div class="eyebrow">Live preview</div>
+            <span class="muted small">Updates as you edit</span>
+          </div>
+          <div id="previewMount"></div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="../shared/defaults.js"></script>
+    <script src="../shared/utils.js"></script>
+    <script src="../shared/storage.js"></script>
+    <script src="../shared/message-engine.js"></script>
+    <script src="../shared/media.js"></script>
+    <script src="../content/overlay-styles.js"></script>
+    <script src="../content/animation-engine.js"></script>
+    <script src="../content/overlay.js"></script>
+    <script src="../shared/ui.js"></script>
+    <script src="../shared/components.js"></script>
+    <script src="../shared/studio.js"></script>
+    <script src="../shared/insights.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -1,0 +1,95 @@
+/* STILL. — onboarding wizard */
+
+body { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+
+.ob-top {
+  position: sticky; top: 0; z-index: 20;
+  display: grid; grid-template-columns: 160px 1fr 160px; align-items: center; gap: 24px;
+  padding: 18px 40px; background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid transparent; transition: border-color .3s ease;
+}
+.ob-top.scrolled { border-bottom-color: var(--line); }
+.ob-logo { font-size: 22px; }
+.ob-count { text-align: right; }
+.ob-progress { max-width: 640px; width: 100%; justify-self: center; }
+.ob-steps { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.ob-steps span { font-size: 11.5px; color: var(--faint); font-weight: 500; transition: color .3s ease; }
+.ob-steps span.is-done { color: var(--muted); }
+.ob-steps span.is-now { color: var(--ink); }
+.ob-bar { height: 3px; border-radius: 9px; background: var(--surface-2); overflow: hidden; }
+.ob-bar span { display: block; height: 100%; width: 0; background: var(--green); border-radius: 9px; transition: width .6s var(--ease); }
+
+.ob-stage { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 28px 40px 120px; outline: none; }
+
+.step { animation: step-in .55s var(--ease) both; }
+.step.back { animation-name: step-in-back; }
+@keyframes step-in { from { opacity: 0; transform: translate3d(18px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes step-in-back { from { opacity: 0; transform: translate3d(-18px, 0, 0); } to { opacity: 1; transform: none; } }
+
+.step-head { max-width: 640px; margin: 18px 0 26px; }
+.step-head .eyebrow { margin-bottom: 10px; color: var(--green); }
+.step-head h1 { font-size: 38px; }
+.step-head p { color: var(--muted); font-size: 15px; margin: 12px 0 0; line-height: 1.55; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr); gap: 40px; align-items: start; }
+.split .aside { position: sticky; top: 104px; }
+.aside-note { margin-top: 12px; text-align: center; }
+
+/* ----- welcome ----- */
+.welcome { display: grid; grid-template-columns: minmax(0, 1fr) minmax(400px, 1.05fr); gap: 56px; align-items: center; min-height: calc(100vh - 230px); }
+.welcome .brand { font-family: var(--serif); font-size: clamp(64px, 9vw, 112px); font-weight: 600; line-height: .9; letter-spacing: -0.02em; margin: 0; }
+.welcome .brand i { font-style: normal; color: var(--green); }
+.welcome .tagline { font-family: var(--serif); font-size: 28px; line-height: 1.2; margin: 22px 0 0; letter-spacing: -0.01em; }
+.welcome .quote { margin: 18px 0 0; color: var(--muted); font-size: 16px; max-width: 420px; line-height: 1.55; }
+.welcome .cta { margin-top: 36px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.welcome .points { margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 520px; }
+.welcome .points div { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.welcome .points b { display: flex; align-items: center; gap: 7px; color: var(--ink); font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.welcome .points .icon { width: 15px; height: 15px; color: var(--green); }
+
+/* ----- final ----- */
+.final-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 32px; align-items: start; }
+.summary { display: grid; gap: 10px; }
+.sum-item { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-l); }
+.sum-item .icon { color: var(--green); margin-top: 2px; }
+.sum-item .k { font-size: 12px; color: var(--muted); }
+.sum-item .v { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.sum-item .edit { margin-left: auto; }
+.tune { margin-top: 18px; }
+.tune .field { grid-template-columns: 1fr; gap: 8px; padding: 12px 0; }
+.tune .field .control { justify-content: flex-start; }
+
+/* ----- done ----- */
+.done { max-width: 620px; margin: 8vh auto 0; text-align: center; }
+.done .seal {
+  width: 74px; height: 74px; margin: 0 auto 26px; border-radius: 24px; background: var(--green-soft); color: var(--green);
+  display: grid; place-items: center; animation: seal .8s var(--ease) both;
+}
+.done .seal .icon { width: 34px; height: 34px; stroke-width: 2; }
+@keyframes seal { from { transform: scale(.6) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.done h1 { font-size: 44px; }
+.done p { color: var(--muted); font-size: 15.5px; line-height: 1.6; margin: 16px auto 0; max-width: 500px; }
+.done .row { justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+.done .tips { margin-top: 44px; text-align: left; display: grid; gap: 10px; }
+
+/* ----- footer ----- */
+.ob-foot {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; align-items: center; gap: 16px; padding: 14px 40px;
+  background: rgba(255, 255, 255, 0.94); backdrop-filter: saturate(1.4) blur(10px);
+  border-top: 1px solid var(--line);
+}
+.ob-foot-note { flex: 1; text-align: center; }
+.ob-foot-note.err { color: var(--danger); }
+
+@media (max-width: 980px) {
+  .ob-top { grid-template-columns: 1fr auto; padding: 14px 20px; }
+  .ob-progress { grid-column: 1 / -1; grid-row: 2; }
+  .ob-stage { padding: 20px 20px 120px; }
+  .split, .welcome, .final-grid { grid-template-columns: 1fr; }
+  .split .aside { position: static; }
+  .ob-foot { padding: 12px 20px; }
+  .ob-steps span { display: none; }
+  .step-head h1 { font-size: 30px; }
+}

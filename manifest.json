@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "STILL.",
+  "short_name": "STILL.",
+  "version": "1.1.0",
+  "description": "Make progress. Without the pressure. Gentle floating reminders of your goals on the sites you scroll.",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "STILL.",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png",
+      "48": "assets/icons/icon-48.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "permissions": [
+    "storage",
+    "scripting",
+    "alarms",
+    "activeTab",
+    "contextMenus"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Open STILL."
+    },
+    "toggle-pause": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "Pause STILL. for 15 minutes / resume"
+    },
+    "preview": {
+      "suggested_key": {
+        "default": "Alt+Shift+Y"
+      },
+      "description": "Show a STILL. wave on this page"
+    },
+    "breathe": {
+      "suggested_key": {
+        "default": "Alt+Shift+B"
+      },
+      "description": "Start a one-minute breathing moment"
+    }
+  }
+}
