@@ -30,6 +30,10 @@ section { padding: 0 14px; animation: p-in .35s var(--ease) both; }
 .p-bars .in-bars.compact .in-bar .fill { background: #2b2f2c; opacity: .25; }
 .p-bars .in-bars.compact .in-bar.today .fill { background: var(--green); opacity: 1; }
 
+/* intensity */
+.p-mode { margin-top: 10px; }
+.p-mode .eyebrow { margin: 0 2px 6px; }
+
 /* focus */
 .p-focus { margin-top: 10px; }
 .p-focus .fo-card .chip { height: 26px; padding: 0 10px; font-size: 12px; }

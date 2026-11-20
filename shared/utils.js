@@ -189,6 +189,13 @@
     out.general.reduceMotion = ['system', 'always', 'never'].includes(g.reduceMotion) ? g.reduceMotion : 'system';
     out.general.escalation = g.escalation !== false;
     out.general.contextMenu = g.contextMenu !== false;
+    out.general.intensity = ['gentle', 'firm', 'aggressive'].includes(g.intensity) ? g.intensity : 'gentle';
+
+    // interaction
+    const ix = U.isPlainObject(r.interaction) ? r.interaction : {};
+    ['interactive', 'hoverPause', 'quickActions', 'popEmojis', 'escToClear'].forEach((k) => (out.interaction[k] = ix[k] !== false));
+    out.interaction.sounds = ix.sounds === true;
+    if (ix.volume !== undefined) out.interaction.volume = U.clamp(ix.volume, 0, 1);
 
     // intention
     const it = U.isPlainObject(r.intention) ? r.intention : {};
@@ -256,6 +263,9 @@
     }
     out.emoji.emojiOnlyReactions = e.emojiOnlyReactions !== false;
     out.emoji.realistic = e.realistic !== false;
+    if (e.sizeVariety !== undefined) out.emoji.sizeVariety = U.clamp(e.sizeVariety, 0, 1);
+    out.emoji.giantAngry = e.giantAngry === true;
+    if (e.giantSize !== undefined) out.emoji.giantSize = Math.round(U.clamp(e.giantSize, 80, 260));
     if (e.emojisPerWave !== undefined) out.emoji.emojisPerWave = Math.round(U.clamp(e.emojisPerWave, 0, 12));
     if (e.speed !== undefined) out.emoji.speed = U.clamp(e.speed, 0.5, 2);
 
@@ -334,25 +344,50 @@
     A.accent = hex(p.accent, A.accent);
     if (p.opacity !== undefined) A.opacity = U.clamp(p.opacity, 0.3, 1);
     if (p.radius !== undefined) A.radius = Math.round(U.clamp(p.radius, 0, 28));
-    if (p.fontSize !== undefined) A.fontSize = Math.round(U.clamp(p.fontSize, 11, 22));
+    if (p.fontSize !== undefined) A.fontSize = Math.round(U.clamp(p.fontSize, 11, 40));
     if (p.maxWidth !== undefined) A.maxWidth = Math.round(U.clamp(p.maxWidth, 160, 420));
     A.position = ['right', 'left', 'center', 'spread'].includes(p.position) ? p.position : A.position;
     A.direction = p.direction === 'down' ? 'down' : 'up';
     if (p.speed !== undefined) A.speed = U.clamp(p.speed, 0.5, 2);
-    if (p.emojiSize !== undefined) A.emojiSize = Math.round(U.clamp(p.emojiSize, 16, 56));
+    if (p.emojiSize !== undefined) A.emojiSize = Math.round(U.clamp(p.emojiSize, 16, 160));
     A.shadow = p.shadow !== false;
     A.glass = p.glass === true;
     A.bubbleIcon = ['emoji', 'logo', 'none'].includes(p.bubbleIcon) ? p.bubbleIcon : 'emoji';
-    A.font = p.font === 'serif' ? 'serif' : 'sans';
+    A.font = STILL.FONT_STACKS[p.font] ? p.font : 'sans';
+    if (p.fontWeight !== undefined) A.fontWeight = [400, 500, 600, 700, 800].includes(Number(p.fontWeight)) ? Number(p.fontWeight) : 500;
+    A.uppercase = p.uppercase === true;
+    if (p.letterSpacing !== undefined) A.letterSpacing = U.clamp(Math.round(p.letterSpacing * 10) / 10, -1, 4);
+    if (p.lineHeight !== undefined) A.lineHeight = U.clamp(Math.round(p.lineHeight * 100) / 100, 1.1, 1.8);
 
     // v1 → v2: reactions now fill the whole screen by default (reels-style).
     if ((Number(r.schemaVersion) || 1) < 2 && Object.keys(r).length) {
       if (A.position === 'right') A.position = 'spread';
       if (out.emoji.emojisPerWave === 5) out.emoji.emojisPerWave = 9;
     }
+    // v2 → v3: tough-love lines and their category arrive for existing users.
+    if ((Number(r.schemaVersion) || 1) < 3 && Object.keys(r).length && Array.isArray(r.messages && r.messages.items)) {
+      const have = new Set(out.messages.items.map((m) => m.id));
+      STILL.DEFAULT_MESSAGES.filter((m) => m.category === 'tough' && !have.has(m.id)).forEach((m) => {
+        if (out.messages.items.length < STILL.LIMITS.maxMessages) out.messages.items.push(STILL.clone(m));
+      });
+      if (!out.messages.categories.includes('tough')) out.messages.categories.push('tough');
+    }
     out.schemaVersion = STILL.SCHEMA_VERSION;
 
     return out;
+  };
+
+  /** Apply an intensity level to a settings draft (mutates and returns it). */
+  U.applyIntensity = function applyIntensity(d, level) {
+    const p = STILL.INTENSITY[level];
+    if (!p) return d;
+    d.general.intensity = level;
+    Object.assign(d.timing, p.timing, { frequency: 'custom' });
+    d.emoji.emojisPerWave = p.emojisPerWave;
+    d.emoji.giantAngry = p.giantAngry;
+    d.general.escalation = true;
+    if (level !== 'gentle' && !d.messages.categories.includes('tough')) d.messages.categories.push('tough');
+    return d;
   };
 
   /** The intention text if it was set today, else ''. */

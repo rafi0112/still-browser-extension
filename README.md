@@ -31,6 +31,21 @@ Requires Chrome / Edge 111 or newer.
 
 ---
 
+## New in 1.2
+
+| Feature | Where |
+|---|---|
+| **Intensity: Gentle · Firm · Aggressive** — one switch for how hard STILL. pushes. Firm and Aggressive start sooner (1–2 min), come back every 1–2 min, add tough-love lines (*“Stop scrolling. Right now.”*) and check in after 5–10 min. Everything stays adjustable afterwards. | Settings › General, popup, setup step 6 |
+| **Giant angry reactions** — 14 new 3D angry / tough-love emojis (😠 😡 🤬 👿 😤 💢 🛑 ⛔ ⚠️ ⏰ 💥 💀 🙄 🙅). Giant ones slam onto the screen and shake; Aggressive adds a red pulse around the edges. | Settings › Emojis |
+| **Angry Storm** animation style — every reaction in the wave slams in big. | Settings › Animations |
+| **Wake-up call** — in Aggressive mode the check-in becomes a centred, shaking card: *“20 MINUTES GONE. CLOSE IT. NOW.”* with *OK, I’m closing it* / *5 more min* / *Breathe*. Still never blocks or closes anything. | On your sites |
+| **Typography** — 8 typefaces (Clean Sans, Elegant Serif, Friendly Rounded, Bold Display, Condensed, Typewriter Mono, Handwritten, বাংলা), weight Regular→Black, ALL CAPS, letter spacing, line height, text size 11–40 px with S/M/L/XL/XXL presets. | Settings › Typography |
+| **Emoji size** — 16–160 px with S/M/L/XL/Giant presets, size variety, and a separate giant size (80–260 px). | Settings › Emojis |
+| **Premium interactions** — hover a message to freeze it; quick actions on every message (♥ favourite · ✓ I’m on it · ✕ dismiss); click any emoji to pop it into confetti; Esc clears the screen; optional synthesized sounds (pop, chime, slam, alert) with volume. | Settings › Interactions |
+| **Tough Love** look preset (dark, red, bold display, ALL CAPS). | Settings › Appearance |
+
+Existing settings are migrated automatically: your messages are kept and the tough-love lines are added (they only appear in Firm and Aggressive).
+
 ## New in 1.1
 
 | Feature | Where |
@@ -78,7 +93,7 @@ still-extension/
 │  ├─ insights.js           insights dashboard, focus, intention, active hours
 │  ├─ ui.css / ui.js        design system + primitives for extension pages
 │  └─ components.js         settings components shared by onboarding and options
-├─ onboarding/              7-step setup wizard
+├─ onboarding/              7-step setup wizard (intensity on step 6)
 ├─ popup/                   toolbar popup
 ├─ options/                 full settings (8 tabs)
 └─ assets/icons/

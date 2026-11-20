@@ -471,3 +471,36 @@ kbd { font: 600 11.5px/1 var(--font); padding: 5px 7px; border-radius: 7px; back
 .st-row .seg { flex-wrap: nowrap; }
 .st-row .seg button { padding: 5px 9px; }
 .preview .url { min-width: 70px; }
+
+/* =========================================================== v1.2 */
+/* intensity */
+.int-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.int-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; min-height: 150px; }
+.int-card .int-ic { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; background: var(--surface-2); font-size: 30px; }
+.int-card .int-tx { display: flex; flex-direction: column; gap: 4px; }
+.int-card b { font-size: 15px; }
+.int-card .muted { line-height: 1.45; }
+.int-gentle.selected { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), var(--shadow); }
+.int-gentle.selected .int-ic { background: var(--green-soft); }
+.int-firm.selected { border-color: #d98a1f; box-shadow: 0 0 0 1px #d98a1f, var(--shadow); }
+.int-firm.selected .int-ic { background: #fdf0dc; }
+.int-firm.selected .check { background: #d98a1f; border-color: #d98a1f; }
+.int-aggressive.selected { border-color: #e2402f; box-shadow: 0 0 0 1px #e2402f, 0 10px 30px -12px rgba(226,64,47,.45); }
+.int-aggressive.selected .int-ic { background: #fde5e1; animation: int-shake 1.6s ease-in-out infinite; }
+.int-aggressive.selected .check { background: #e2402f; border-color: #e2402f; }
+.int-aggressive:hover .int-ic { animation: int-shake .8s ease-in-out infinite; }
+@keyframes int-shake { 0%, 100% { transform: none; } 20% { transform: rotate(-8deg) scale(1.05); } 40% { transform: rotate(8deg) scale(1.05); } 60% { transform: rotate(-4deg); } 80% { transform: rotate(3deg); } }
+.int-grid.compact { gap: 6px; }
+.int-grid.compact .int-card { flex-direction: row; align-items: center; gap: 7px; min-height: 0; padding: 7px 8px; border-radius: 12px; }
+.int-grid.compact .int-ic { width: 30px; height: 30px; border-radius: 9px; font-size: 16px; }
+.int-grid.compact b { font-size: 12.5px; }
+
+/* typography */
+.font-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
+.font-card { display: flex; flex-direction: column; gap: 8px; padding: 16px 14px 12px; min-height: 104px; }
+.font-sample { font-size: 21px; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
+.font-name { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: auto; }
+.font-card.selected .font-name { color: var(--green-ink); }
+.font-card .check { top: 9px; right: 9px; }
+
+@media (max-width: 760px) { .int-grid:not(.compact) { grid-template-columns: 1fr; } }

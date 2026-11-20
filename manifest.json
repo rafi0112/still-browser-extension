@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "STILL.",
   "short_name": "STILL.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Make progress. Without the pressure. Gentle floating reminders of your goals on the sites you scroll.",
   "minimum_chrome_version": "111",
   "icons": {

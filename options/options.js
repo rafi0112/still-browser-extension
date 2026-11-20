@@ -41,6 +41,8 @@
     { id: 'studio', label: 'Studio', icon: 'image', title: 'Studio', sub: 'Turn your own pictures into floating reactions, bubble icons or your personal logo.', preview: true, build: () => STILL.studio.component(model), badge: () => studioCount },
     { id: 'messages', label: 'Motivation Messages', icon: 'message', title: 'Motivation messages', sub: 'Write the sentences you need to hear. Organise them into collections and categories.', preview: true, build: messages, badge: (s) => STILL.messageEngine.messagePool(s).length },
     { id: 'timing', label: 'Timing & Frequency', icon: 'clock', title: 'Timing & frequency', sub: 'How soon, how often and how much. Gentle by default.', preview: true, build: timing },
+    { id: 'typography', label: 'Typography', icon: 'type', title: 'Typography', sub: 'Typeface, text size, weight, ALL CAPS and spacing for every floating message.', preview: true, build: () => C.typographyForm(model) },
+    { id: 'interactions', label: 'Interactions', icon: 'sparkles', title: 'Interactions', sub: 'Hover to pause, quick actions, pop-to-confetti, Esc to clear and sounds.', preview: true, build: () => C.interactionForm(model) },
     { id: 'appearance', label: 'Appearance', icon: 'droplet', title: 'Appearance', sub: 'Make the bubbles yours — colours, type, size, position and motion.', preview: true, build: appearance },
     { id: 'privacy', label: 'Data & Privacy', icon: 'shield', title: 'Data & privacy', sub: 'Everything STILL. knows lives on this device. Export it, import it, or start fresh.', preview: false, build: privacy, sep: true }
   ];
@@ -134,8 +136,9 @@
     return h(
       'div',
       null,
+      section('Intensity — how hard should STILL. push?', C.intensityPicker(model), h('div', { class: 'muted small', style: { marginTop: '10px' }, text: 'Choosing a level sets timing, emojis and messages for you. You can still fine-tune everything in the other tabs.' })),
       section(
-        null,
+        'Basics',
         card(
           ui.field('STILL. is on', 'The master switch. When off, nothing appears anywhere.', ui.bind(model, 'enabled', ui.toggle, { label: 'Enable STILL.' })),
           ui.field('Take a break', null, h('div', { class: 'stack', style: { alignItems: 'flex-end', gap: '6px' } }, pauseRow, pauseInfo))

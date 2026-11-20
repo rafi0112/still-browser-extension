@@ -17,13 +17,19 @@
   }
 
   /** Messages eligible right now, respecting enabled flags, categories and the active collection. */
+  /**
+   * Messages eligible right now. Tough-love lines (category "tough") only join in
+   * Firm and Aggressive intensity, unless the user wrote them themselves.
+   */
   function messagePool(settings) {
     const m = settings.messages;
     const cats = new Set(m.categories);
+    const gentle = settings.general.intensity === 'gentle';
     return m.items.filter(
       (it) =>
         it.enabled &&
         cats.has(it.category) &&
+        !(gentle && it.category === 'tough' && !it.custom) &&
         (m.activeCollection === 'all' || it.collection === m.activeCollection)
     );
   }
@@ -52,7 +58,8 @@
     const mode = settings.animation.rotation;
     if (sel.includes('random-mix')) {
       const t = U.pick(TEXT_STYLES.filter((s) => s !== state.lastText)) || 'live-reaction';
-      const e = U.pick(EMOJI_STYLES);
+      // The storm only joins the mix when the user has asked STILL. to push hard.
+      const e = U.pick(EMOJI_STYLES.filter((s) => s !== 'angry-storm' || settings.general.intensity === 'aggressive'));
       state.lastText = t;
       state.lastEmoji = e;
       return { textStyle: t, emojiStyle: e };
@@ -69,6 +76,7 @@
     let w = 1;
     if (settings.messages.preferCustom && item.custom) w *= 3;
     if (item.favorite) w *= 2;
+    if (item.category === 'tough') w *= { gentle: 1, firm: 2, aggressive: 4 }[settings.general.intensity] || 1;
     return w;
   }
 
@@ -124,6 +132,10 @@
 
     let emojiPool = allEmojis(settings);
     if (emojiStyle === 'rising-hearts') emojiPool = STILL.HEART_EMOJIS.concat(emojiPool.slice(0, 4));
+    // Angry reactions: the user's own angry picks, or the whole angry set.
+    const ownAngry = allEmojis(settings).filter((e) => STILL.ANGRY_EMOJIS.includes(e));
+    const angryPool = ownAngry.length ? ownAngry : STILL.ANGRY_EMOJIS.slice();
+    if (emojiStyle === 'angry-storm') emojiPool = angryPool;
     let emojiCount = emojiPool.length ? settings.emoji.emojisPerWave : 0;
 
     let textCount;
@@ -159,7 +171,7 @@
     // Sprinkle a short focus nudge occasionally (never replacing a personal message).
     if (settings.messages.focusNudges && texts.length >= 2 && Math.random() < 0.3) {
       const idx = texts.findIndex((t, i) => i > 0 && !t.personal);
-      if (idx > 0) texts[idx] = { id: 'nudge', text: U.pick(STILL.FOCUS_NUDGES), emoji: texts[idx].emoji, personal: false, nudge: true };
+      if (idx > 0) texts[idx] = { id: 'nudge', text: U.pick(settings.general.intensity === 'gentle' ? STILL.FOCUS_NUDGES : STILL.TOUGH_NUDGES), emoji: texts[idx].emoji, personal: false, nudge: true };
     }
 
     const emojis = [];
@@ -170,13 +182,23 @@
       emojis.push(deck.pop());
     }
 
+    // Giant angry reactions on top of the wave (option, or Firm / Aggressive).
+    const intensity = settings.general.intensity;
+    const giants = [];
+    if (settings.emoji.giantAngry && stage !== 'gentle') {
+      const n = intensity === 'aggressive' ? U.randInt(2, 3) : 1;
+      const deck2 = U.shuffle(angryPool);
+      for (let i = 0; i < n && deck2.length; i++) giants.push(deck2.pop());
+    }
+
     let reminder = null;
     if (stage === 'reminder') {
       const kind = opts.reminderKind || 'time';
+      const tough = intensity === 'aggressive';
       let text;
       if (kind === 'focus') {
         const left = Math.max(1, Math.round(opts.focusLeftMin || 1));
-        text = U.pick(STILL.FOCUS_REMINDERS).replace('{left}', String(left));
+        text = U.pick(tough ? STILL.TOUGH_FOCUS_REMINDERS : STILL.FOCUS_REMINDERS).replace('{left}', String(left));
       } else if (kind === 'budget') {
         text = U.pick(STILL.BUDGET_REMINDERS).replace('{budget}', String(opts.budgetMin || '')).replace('{site}', opts.site || 'this site');
       } else {
@@ -184,12 +206,13 @@
         if (idx === state.reminderIdx) idx = (idx + 1) % STILL.REMINDERS.length;
         state.reminderIdx = idx;
         const minutes = Math.max(1, Math.round(opts.minutes || settings.timing.reminderAfterMin));
-        text = STILL.REMINDERS[idx].replace('{minutes}', String(minutes));
+        const list = tough ? STILL.TOUGH_REMINDERS : STILL.REMINDERS;
+        text = list[idx % list.length].replace('{minutes}', String(minutes));
       }
-      reminder = { text, kind, sub: intention ? 'Today: ' + intention : '' };
+      reminder = { text, kind, sub: intention ? 'Today: ' + intention : '', tough, icon: tough ? U.pick(angryPool) : '' };
     }
 
-    return { textStyle, emojiStyle, texts, emojis, reminder, stage, state };
+    return { textStyle, emojiStyle, texts, emojis, giants, intensity, reminder, stage, state };
   }
 
   STILL.messageEngine = { freshState, messagePool, buildWave, TEXT_STYLES, EMOJI_STYLES };

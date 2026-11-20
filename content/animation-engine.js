@@ -19,6 +19,61 @@
   const SANS = '"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,Inter,"Helvetica Neue",Arial,sans-serif';
   const SERIF = '"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif';
   const MAX_EMOJIS = 26;
+  const MAX_GIANTS = 5;
+
+  /**
+   * Tiny synthesized sound set (Web Audio, no files): pop, chime, slam, alert.
+   * Browsers only let audio start after the page has had a user gesture, so a
+   * sound that can't play is silently skipped.
+   */
+  class Sound {
+    constructor() {
+      this.ctx = null;
+    }
+    _ctx() {
+      try {
+        if (!this.ctx) {
+          const AC = root.AudioContext || root.webkitAudioContext;
+          if (!AC) return null;
+          this.ctx = new AC();
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+        return this.ctx.state === 'running' ? this.ctx : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    _tone(ctx, { type, f0, f1, dur, vol, at }) {
+      const t = ctx.currentTime + (at || 0);
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f0, t);
+      if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    }
+    play(kind, volume) {
+      const ctx = this._ctx();
+      if (!ctx || !(volume > 0)) return;
+      const v = Math.min(1, volume) * 0.35;
+      if (kind === 'pop') this._tone(ctx, { type: 'sine', f0: 520, f1: 1250, dur: 0.09, vol: v });
+      else if (kind === 'chime') {
+        this._tone(ctx, { type: 'sine', f0: 880, dur: 0.7, vol: v * 0.7 });
+        this._tone(ctx, { type: 'sine', f0: 1318.5, dur: 0.9, vol: v * 0.5, at: 0.09 });
+      } else if (kind === 'slam') {
+        this._tone(ctx, { type: 'sine', f0: 140, f1: 48, dur: 0.32, vol: v * 1.3 });
+        this._tone(ctx, { type: 'triangle', f0: 220, f1: 90, dur: 0.18, vol: v * 0.5 });
+      } else if (kind === 'alert') {
+        [0, 0.16, 0.32].forEach((at, i) => this._tone(ctx, { type: 'square', f0: i % 2 ? 660 : 523, dur: 0.12, vol: v * 0.25, at }));
+      }
+    }
+  }
+  STILL.sound = STILL.sound || new Sound();
 
   function hexToRgb(hex) {
     const n = parseInt(String(hex).replace('#', ''), 16);
@@ -49,8 +104,9 @@
     constructor(layer, opts) {
       this.layer = layer;
       this.opts = opts || {};
+      this.vignette = el('div', 'vignette');
       this.stage = el('div', 'stage');
-      layer.appendChild(this.stage);
+      layer.append(this.vignette, this.stage);
       this.timers = new Set();
       this.items = new Set();
       this.textCount = 0;
@@ -86,8 +142,19 @@
       s.setProperty('--fs', a.fontSize + 'px');
       s.setProperty('--maxw', a.maxWidth + 'px');
       s.setProperty('--esize', a.emojiSize + 'px');
-      s.setProperty('--font', a.font === 'serif' ? SERIF : SANS);
-      s.setProperty('--display', SERIF);
+      const font = (STILL.FONT_STACKS && STILL.FONT_STACKS[a.font]) || SANS;
+      s.setProperty('--font', font);
+      s.setProperty('--display', a.font === 'sans' ? SERIF : font);
+      s.setProperty('--fw', String(a.fontWeight || 500));
+      s.setProperty('--tt', a.uppercase ? 'uppercase' : 'none');
+      s.setProperty('--ls', (a.letterSpacing || 0) + 'px');
+      s.setProperty('--lh', String(a.lineHeight || 1.38));
+      const ix = settings.interaction || {};
+      const cl = this.layer.classList;
+      cl.toggle('int', !!ix.interactive);
+      cl.toggle('hp', !!(ix.interactive && ix.hoverPause));
+      cl.toggle('aggr', settings.general.intensity === 'aggressive');
+      cl.toggle('firm', settings.general.intensity === 'firm');
       s.setProperty(
         '--shadow',
         a.shadow ? '0 1px 2px rgba(0,0,0,.06), 0 10px 28px -10px rgba(0,0,0,.22)' : '0 0 0 1px ' + rgba(fgRgb, 0.1)
@@ -103,6 +170,20 @@
       if (!token) return null;
       if (STILL.media) return STILL.media.node(token, px, this.settings);
       return el('span', 'emoji-txt', token);
+    }
+
+    /** Play a synthesized sound if the user turned sounds on. */
+    sound(kind) {
+      const ix = this.settings.interaction;
+      if (ix && ix.sounds) STILL.sound.play(kind, ix.volume);
+    }
+
+    /** Red pulse around the edges (aggressive intensity). */
+    flash() {
+      const v = this.vignette;
+      v.classList.remove('on');
+      void v.offsetWidth;
+      v.classList.add('on');
     }
 
     reducedMotion() {
@@ -190,12 +271,28 @@
         ? [0, 1, 2].map(() => U.rand(m + 30, Math.max(m + 31, w - m - 60)))
         : [U.rand(lane[0] + 20, Math.max(lane[0] + 21, lane[1] - 40))];
       let at = hearts ? 150 : 0;
-      emojis.forEach((e, i) => {
-        const x = full && !hearts ? m + (cols[i] + U.rand(0.1, 0.9)) * colW : null;
-        const origin = origins[i % origins.length];
-        this._later(() => this._spawnEmoji(e, wave.emojiStyle, origin, x), at);
-        at += hearts ? U.rand(90, 170) : (full ? U.rand(150, 380) : U.rand(240, 560)) / speed;
+      if (wave.emojiStyle === 'angry-storm') {
+        // Angry Storm: every reaction slams in big, scattered over the screen.
+        emojis.slice(0, 8).forEach((e) => {
+          this._later(() => this._spawnGiant(e, U.rand(0.45, 0.75)), at);
+          at += U.rand(260, 520) / speed;
+        });
+      } else {
+        emojis.forEach((e, i) => {
+          const x = full && !hearts ? m + (cols[i] + U.rand(0.1, 0.9)) * colW : null;
+          const origin = origins[i % origins.length];
+          this._later(() => this._spawnEmoji(e, wave.emojiStyle, origin, x), at);
+          at += hearts ? U.rand(90, 170) : (full ? U.rand(150, 380) : U.rand(240, 560)) / speed;
+        });
+      }
+      // Giant angry reactions on top (Firm / Aggressive, or the option).
+      (wave.giants || []).forEach((e, i) => {
+        this._later(() => this._spawnGiant(e, 1), 450 + i * 650);
       });
+      if (this.settings.general.intensity === 'aggressive') {
+        this._later(() => this.flash(), 300);
+        if ((wave.texts || []).length) this._later(() => this.flash(), 2600);
+      }
 
       // texts
       const texts = wave.texts || [];
@@ -229,6 +326,88 @@
         if (ev.target === node) finish();
       });
       this._later(finish, dur + 1500); // safety net
+      node._finish = finish;
+      return finish;
+    }
+
+    /** Quick fade-out for a single item (dismiss / done / pop). */
+    _dismiss(node, how) {
+      if (!node || node._gone) return;
+      node._gone = true;
+      node.classList.add(how || 'gone');
+      this._later(() => node._finish && node._finish(), 320);
+    }
+
+    /** Particle burst at layer coordinates (x, y). */
+    _burst(x, y, opts) {
+      if (this.reducedMotion()) return;
+      opts = opts || {};
+      const n = opts.count || 12;
+      const box = el('div', 'burst');
+      box.style.left = Math.round(x) + 'px';
+      box.style.top = Math.round(y) + 'px';
+      for (let i = 0; i < n; i++) {
+        const a = (Math.PI * 2 * i) / n + U.rand(-0.25, 0.25);
+        const d = U.rand(opts.min || 26, opts.max || 70);
+        const p = el('span', 'p' + (i % 3 === 0 ? ' alt' : ''));
+        p.style.setProperty('--tx', (Math.cos(a) * d).toFixed(1) + 'px');
+        p.style.setProperty('--ty', (Math.sin(a) * d).toFixed(1) + 'px');
+        p.style.setProperty('--s', U.rand(0.6, 1.3).toFixed(2));
+        box.appendChild(p);
+      }
+      this.layer.appendChild(box);
+      const t = setTimeout(() => box.remove(), 750);
+      this.timers.add(t);
+    }
+
+    _centerOf(elm) {
+      const r = elm.getBoundingClientRect();
+      const L = this.layer.getBoundingClientRect();
+      return { x: r.left - L.left + r.width / 2, y: r.top - L.top + r.height / 2 };
+    }
+
+    /** Make a reaction poppable (click / tap). */
+    _poppable(node, target) {
+      const ix = this.settings.interaction;
+      if (!ix || !ix.interactive || !ix.popEmojis) return;
+      target.classList.add('hit');
+      target.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (node._gone) return;
+        const c = this._centerOf(target);
+        this._burst(c.x, c.y, { count: 14, max: 90 });
+        this.sound('pop');
+        this._dismiss(node, 'popped');
+        if (this.opts.onItemAction) this.opts.onItemAction('pop', null);
+      });
+    }
+
+    /** Giant angry reaction: slams in, shakes, then drops away. */
+    _spawnGiant(token, factor) {
+      if (this.destroyed || !token) return;
+      if ([...this.items].filter((n) => n._giant).length >= MAX_GIANTS) return;
+      const { w, h, m } = this._size();
+      const sz = Math.round(Math.min(this.settings.emoji.giantSize * factor * U.rand(0.88, 1.12), Math.min(w, h) * 0.6));
+      const art = this._media(token, sz);
+      if (!art) return;
+      const node = el('div', 'item s-giant');
+      const g = el('span', 'giant');
+      g.appendChild(art);
+      node.appendChild(g);
+      const x = U.rand(m, Math.max(m, w - sz - m));
+      const y = U.rand(h * 0.1, Math.max(h * 0.1, h * 0.78 - sz));
+      const dur = (U.rand(2.8, 3.6) * 1000) / this.settings.appearance.speed;
+      node.style.left = Math.round(x) + 'px';
+      node.style.top = Math.round(y) + 'px';
+      node.style.setProperty('--dur', Math.round(dur) + 'ms');
+      node.style.setProperty('--rot', U.rand(-16, 16).toFixed(0) + 'deg');
+      node._giant = true;
+      this.stage.appendChild(node);
+      this._track(node, 'emoji', dur);
+      this._poppable(node, g);
+      this.sound('slam');
+      if (this.settings.general.intensity === 'aggressive') this.flash();
     }
 
     _spawnText(item, style, dur, tries) {
@@ -251,6 +430,38 @@
         bubble.appendChild(em);
       }
       bubble.appendChild(el('span', 'tx', item.text));
+      const ix = this.settings.interaction;
+      if (ix && ix.interactive && ix.quickActions) {
+        const acts = el('span', 'acts');
+        const realMsg = item.id && !['fallback', 'nudge', 'intention'].includes(item.id);
+        const mk = (k, glyph, title) => {
+          const b = el('button', 'qa qa-' + k, glyph);
+          b.type = 'button';
+          b.title = title;
+          b.setAttribute('aria-label', title);
+          b.addEventListener('pointerdown', (e) => e.stopPropagation());
+          b.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const c = this._centerOf(b);
+            if (k === 'fav') {
+              b.classList.add('on');
+              this._burst(c.x, c.y, { count: 8, max: 40 });
+              this.sound('pop');
+            } else if (k === 'done') {
+              this._burst(c.x, c.y, { count: 14, max: 80 });
+              this.sound('chime');
+              this._dismiss(node);
+            } else this._dismiss(node);
+            if (this.opts.onItemAction) this.opts.onItemAction(k === 'fav' ? 'favorite' : k, item);
+          });
+          acts.appendChild(b);
+        };
+        if (realMsg) mk('fav', '♥', 'Favourite — show this more often');
+        mk('done', '✓', "I'm on it");
+        mk('hide', '✕', 'Dismiss');
+        bubble.appendChild(acts);
+        bubble.classList.add('hit');
+      }
       sway.appendChild(bubble);
       node.appendChild(sway);
       node.style.setProperty('--dur', Math.round(dur) + 'ms');
@@ -338,7 +549,8 @@
       const dur = ((hearts ? (full ? U.rand(3.6, 5.2) : U.rand(2.8, 4.2)) : full ? U.rand(6, 8.8) : U.rand(3.8, 5.8)) * 1000) / speed;
       const node = el('div', 'item s-' + (hearts ? 'rising-hearts' : 'floating-emojis'));
       const sway = el('div', 'sway');
-      const size = a.emojiSize * U.rand(0.82, 1.22);
+      const v = this.settings.emoji.sizeVariety;
+      const size = a.emojiSize * U.rand(1 - v * 0.45, 1 + v * 0.6);
       const art = this._media(emoji, Math.round(size));
       if (!art) return;
       const glyph = el('span', 'emoji');
@@ -371,6 +583,7 @@
       node.style.setProperty('--dx', U.rand(-50, 50).toFixed(0) + 'px');
       this.stage.appendChild(node);
       this._track(node, 'emoji', dur);
+      this._poppable(node, glyph);
     }
 
     /* ------------------------------------------------------------ teardown */

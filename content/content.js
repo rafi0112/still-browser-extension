@@ -63,9 +63,20 @@
     if (!overlay) {
       overlay = STILL.createOverlay({
         onHide: () => {},
-        onPause: () => send({ type: 'still:pause', minutes: 15 }),
+        onPause: (minutes) => send({ type: 'still:pause', minutes: minutes || 15 }),
         onMoment: (kind) => send({ type: 'still:moment', kind }),
-        onEndFocus: () => send({ type: 'still:focus-stop' })
+        onEndFocus: () => send({ type: 'still:focus-stop' }),
+        onItemAction: (kind, item) => {
+          // ♥ on a floating message marks it as a favourite (shown twice as often).
+          if (kind === 'favorite' && item && item.id) {
+            STILL.store
+              .update((d) => {
+                const m = d.messages.items.find((x) => x.id === item.id);
+                if (m) m.favorite = true;
+              })
+              .catch(() => {});
+          }
+        }
       });
     }
     overlay.ensureAttached();
@@ -75,7 +86,7 @@
 
   /** Decode every image a wave needs, then play it. */
   async function playPrepared(wave) {
-    const tokens = (wave.emojis || []).concat((wave.texts || []).map((t) => t.emoji));
+    const tokens = (wave.emojis || []).concat((wave.texts || []).map((t) => t.emoji), wave.giants || [], wave.reminder && wave.reminder.icon ? [wave.reminder.icon] : []);
     if (settings.brand.logo) tokens.push('img:' + settings.brand.logo);
     try {
       if (STILL.media) await STILL.media.prepare(tokens, settings);
@@ -136,6 +147,12 @@
     else if (settings.timing.pauseWhenInactive) stopTimer();
   }
 
+  /** Esc clears whatever STILL. is showing (it never swallows the key). */
+  function onKey(e) {
+    if (e.key !== 'Escape' || !overlay || !settings || !settings.interaction.escToClear) return;
+    overlay.clear();
+  }
+
   function onPageShow(e) {
     if (e.persisted && siteActive) schedule(600); // restored from back/forward cache
   }
@@ -184,6 +201,7 @@
       /* ignore */
     }
     document.removeEventListener('visibilitychange', onVisibility);
+    document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('pageshow', onPageShow);
     try {
       chrome.runtime.onMessage.removeListener(onMessage);
@@ -204,6 +222,7 @@
     return;
   }
   document.addEventListener('visibilitychange', onVisibility);
+  document.addEventListener('keydown', onKey, true);
   window.addEventListener('pageshow', onPageShow);
 
   const ready = STILL.store

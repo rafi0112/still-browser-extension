@@ -709,7 +709,6 @@
         'How many reactions float up with each appearance. Separate from your messages.',
         ui.bind(model, 'emoji.emojisPerWave', ui.slider, { min: 0, max: 12, step: 1, label: 'Emojis per appearance', format: (v) => (v === 0 ? 'None' : v + ' per wave') })
       ),
-      ui.field('Emoji size', null, ui.bind(model, 'appearance.emojiSize', ui.slider, { min: 16, max: 56, step: 1, label: 'Emoji size', format: (v) => v + ' px' })),
       ui.field('Emoji speed', 'Relative to the overall animation speed.', ui.bind(model, 'emoji.speed', ui.slider, { min: 0.5, max: 2, step: 0.1, label: 'Emoji speed', format: (v) => (v === 1 ? 'Normal' : v.toFixed(1) + '×') }))
     );
 
@@ -717,7 +716,8 @@
       h('div', { class: 'row between', style: { flexWrap: 'wrap', gap: '10px' } }, h('div', { class: 'row', style: { gap: '12px', flexWrap: 'wrap' } }, look, count), bulk),
       groupsBox,
       h('div', null, h('div', { class: 'eyebrow', style: { marginBottom: '8px' }, text: 'Any other emoji' }), h('div', { class: 'row', style: { alignItems: 'flex-start' } }, input, h('button', { class: 'btn', type: 'button', onclick: add }, ui.icon('plus', 'sm'), 'Add')), err),
-      settingsCard
+      settingsCard,
+      h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 10px' }, text: 'Size & giant reactions' }), C.emojiSizeForm(model))
     );
     void opts;
     return wrap;
@@ -1192,7 +1192,7 @@
               background:
                 id === 'transparent' || id === 'glass'
                   ? 'repeating-linear-gradient(45deg,#e9efe9 0 6px,#fafaf8 6px 12px)'
-                  : id === 'midnight' || id === 'aurora'
+                  : id === 'midnight' || id === 'aurora' || id === 'tough'
                     ? '#2a2f2c'
                     : '#f6f5f0'
             }
@@ -1204,7 +1204,9 @@
               style: {
                 background: hexA(p.bubbleBg, p.opacity),
                 color: p.textColor,
-                fontFamily: p.font === 'serif' ? 'var(--serif)' : 'var(--font)',
+                fontFamily: STILL.FONT_STACKS[p.font] || 'var(--font)',
+                fontWeight: String(p.fontWeight || 500),
+                textTransform: p.uppercase ? 'uppercase' : 'none',
                 boxShadow: p.shadow ? '0 6px 16px -8px rgba(0,0,0,.35)' : '0 0 0 1px rgba(0,0,0,.08)',
                 backdropFilter: p.glass ? 'blur(8px)' : null
               }
@@ -1228,7 +1230,7 @@
               'aria-pressed': String(model.settings.appearance.preset === id),
               onclick: () =>
                 model.update((d) => {
-                  Object.assign(d.appearance, { preset: id, bubbleBg: p.bubbleBg, textColor: p.textColor, accent: p.accent, opacity: p.opacity, shadow: p.shadow, font: p.font, glass: !!p.glass });
+                  Object.assign(d.appearance, { preset: id, bubbleBg: p.bubbleBg, textColor: p.textColor, accent: p.accent, opacity: p.opacity, shadow: p.shadow, font: p.font, glass: !!p.glass, fontWeight: p.fontWeight || 500, uppercase: !!p.uppercase });
                 })
             },
             sample,
@@ -1280,16 +1282,13 @@
             { value: 'none', label: 'None' }
           ]
         })
-      ),
-      ui.field('Typeface', null, bindA('font', ui.segmented, { label: 'Typeface', options: [{ value: 'sans', label: 'Sans' }, { value: 'serif', label: 'Serif' }] }))
+      )
     );
     const shape = h(
       'div',
       { class: 'card pad', style: { paddingTop: '4px', paddingBottom: '4px' } },
       ui.field('Corner radius', null, bindA('radius', ui.slider, { min: 0, max: 28, step: 1, label: 'Corner radius', format: (v) => v + ' px' })),
-      ui.field('Font size', null, bindA('fontSize', ui.slider, { min: 11, max: 22, step: 1, label: 'Font size', format: (v) => v + ' px' })),
-      ui.field('Message width', 'Maximum width before a sentence wraps.', bindA('maxWidth', ui.slider, { min: 160, max: 420, step: 10, label: 'Message width', format: (v) => v + ' px' })),
-      ui.field('Emoji size', null, bindA('emojiSize', ui.slider, { min: 16, max: 56, step: 1, label: 'Emoji size', format: (v) => v + ' px' }))
+      ui.field('Text & emoji size', 'Fonts and text size live in Typography; emoji sizes in Emojis.', h('span', { class: 'muted small', text: model.settings.appearance.fontSize + ' px text · ' + model.settings.appearance.emojiSize + ' px emojis' }))
     );
     const motion = h(
       'div',
@@ -1315,9 +1314,149 @@
       'div',
       { class: 'stack', style: { gap: '18px' } },
       h('div', null, h('div', { class: 'eyebrow', style: { marginBottom: '10px' }, text: 'Presets' }), presetRow),
-      h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 10px' }, text: 'Colour & type' }), look),
-      h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 10px' }, text: 'Size & shape' }), shape),
+      h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 10px' }, text: 'Colour' }), look),
+      h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 10px' }, text: 'Shape' }), shape),
       h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 10px' }, text: 'Motion' }), motion)
+    );
+  };
+
+  /* =================================================================
+   * v1.2 — Intensity, typography, emoji size, interactions
+   * ================================================================= */
+
+  /** Gentle / Firm / Aggressive cards. opts.compact for popup-sized rows. */
+  C.intensityPicker = function intensityPicker(model, opts) {
+    opts = opts || {};
+    const wrap = h('div', { class: 'int-grid' + (opts.compact ? ' compact' : ''), role: 'radiogroup', 'aria-label': 'Intensity' });
+    const paint = () => {
+      ui.empty(wrap);
+      Object.entries(STILL.INTENSITY).forEach(([id, p]) => {
+        const on = model.settings.general.intensity === id;
+        const art = STILL.media ? STILL.media.node(p.icon, opts.compact ? 26 : 44, model.settings) : null;
+        wrap.appendChild(
+          h(
+            'button',
+            {
+              type: 'button',
+              role: 'radio',
+              'aria-checked': String(on),
+              class: 'tile int-card int-' + id + (on ? ' selected' : ''),
+              onclick: () => {
+                model.update((d) => U.applyIntensity(d, id));
+                if (!opts.compact) ui.toast(p.label + ' mode on', 'sparkles');
+              }
+            },
+            h('span', { class: 'int-ic' }, art || p.icon),
+            h('span', { class: 'int-tx' }, h('b', { text: p.label }), opts.compact ? null : h('span', { class: 'muted small', text: p.desc })),
+            opts.compact ? null : h('span', { class: 'check' }, ui.icon('check'))
+          )
+        );
+      });
+    };
+    paint();
+    model.subscribe((n, p) => n.general.intensity !== p.general.intensity && paint());
+    return wrap;
+  };
+
+  /** Font family cards + weight, size, case, spacing and line height. */
+  C.typographyForm = function typographyForm(model) {
+    const fonts = h('div', { class: 'font-grid' });
+    const paintFonts = () => {
+      ui.empty(fonts);
+      const a = model.settings.appearance;
+      STILL.FONTS.forEach((f) => {
+        const on = a.font === f.id;
+        fonts.appendChild(
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'tile font-card' + (on ? ' selected' : ''),
+              'aria-pressed': String(on),
+              onclick: () => model.update((d) => void (d.appearance.font = f.id))
+            },
+            h('span', {
+              class: 'font-sample',
+              style: { fontFamily: f.stack, fontWeight: String(a.fontWeight), textTransform: a.uppercase ? 'uppercase' : 'none' },
+              text: f.id === 'bangla' ? 'লক্ষ্যে থাকুন।' : 'Make today count.'
+            }),
+            h('span', { class: 'font-name', text: f.label }),
+            h('span', { class: 'check' }, ui.icon('check'))
+          )
+        );
+      });
+    };
+    paintFonts();
+    model.subscribe((n, p) => JSON.stringify(n.appearance) !== JSON.stringify(p.appearance) && paintFonts());
+
+    const sizeChips = ui.segmented({
+      label: 'Text size preset',
+      value: model.settings.appearance.fontSize,
+      options: STILL.TEXT_SIZE_PRESETS,
+      onChange: (v) => model.patch('appearance.fontSize', v)
+    });
+    model.subscribe((s) => sizeChips.setValue(s.appearance.fontSize));
+
+    return h(
+      'div',
+      { class: 'stack', style: { gap: '18px' } },
+      h('div', null, h('div', { class: 'eyebrow', style: { marginBottom: '10px' }, text: 'Typeface' }), fonts),
+      h(
+        'div',
+        { class: 'card pad', style: { paddingTop: '4px', paddingBottom: '4px' } },
+        ui.field('Text size', 'Quick sizes, or fine-tune with the slider.', h('div', { class: 'stack', style: { gap: '10px', alignItems: 'flex-end', width: '100%' } }, sizeChips, ui.bind(model, 'appearance.fontSize', ui.slider, { min: 11, max: 40, step: 1, label: 'Text size', format: (v) => v + ' px' }))),
+        ui.field('Weight', null, ui.bind(model, 'appearance.fontWeight', ui.segmented, { label: 'Font weight', options: STILL.FONT_WEIGHTS })),
+        ui.field('ALL CAPS', 'Shouty and hard to miss. Pairs well with Aggressive mode.', ui.bind(model, 'appearance.uppercase', ui.toggle, { label: 'Uppercase text' })),
+        ui.field('Letter spacing', null, ui.bind(model, 'appearance.letterSpacing', ui.slider, { min: -1, max: 4, step: 0.1, label: 'Letter spacing', format: (v) => (v > 0 ? '+' : '') + v.toFixed(1) + ' px' })),
+        ui.field('Line height', null, ui.bind(model, 'appearance.lineHeight', ui.slider, { min: 1.1, max: 1.8, step: 0.02, label: 'Line height', format: (v) => v.toFixed(2) })),
+        ui.field('Message width', 'Maximum width before a sentence wraps.', ui.bind(model, 'appearance.maxWidth', ui.slider, { min: 160, max: 420, step: 10, label: 'Message width', format: (v) => v + ' px' }))
+      )
+    );
+  };
+
+  /** Emoji size presets, variety and giant angry reactions. */
+  C.emojiSizeForm = function emojiSizeForm(model) {
+    const chips = ui.segmented({
+      label: 'Emoji size preset',
+      value: model.settings.appearance.emojiSize,
+      options: STILL.EMOJI_SIZE_PRESETS,
+      onChange: (v) => model.patch('appearance.emojiSize', v)
+    });
+    model.subscribe((s) => chips.setValue(s.appearance.emojiSize));
+    return h(
+      'div',
+      { class: 'card pad', style: { paddingTop: '4px', paddingBottom: '4px' } },
+      ui.field('Emoji size', 'From subtle to giant.', h('div', { class: 'stack', style: { gap: '10px', alignItems: 'flex-end', width: '100%' } }, chips, ui.bind(model, 'appearance.emojiSize', ui.slider, { min: 16, max: 160, step: 2, label: 'Emoji size', format: (v) => v + ' px' }))),
+      ui.field('Size variety', 'Mix big and small for a natural look.', ui.bind(model, 'emoji.sizeVariety', ui.slider, { min: 0, max: 1, step: 0.05, label: 'Size variety', format: (v) => (v === 0 ? 'Same size' : Math.round(v * 100) + '%') })),
+      ui.field('Giant angry reactions', 'Adds big angry emojis that slam in and shake with every appearance. On automatically in Firm and Aggressive.', ui.bind(model, 'emoji.giantAngry', ui.toggle, { label: 'Giant angry reactions' })),
+      ui.field('Giant size', 'Also used by the Angry Storm style.', ui.bind(model, 'emoji.giantSize', ui.slider, { min: 80, max: 260, step: 5, label: 'Giant emoji size', format: (v) => v + ' px' }))
+    );
+  };
+
+  /** Hover, pop, quick actions, Esc, sounds. */
+  C.interactionForm = function interactionForm(model) {
+    const testBtn = h('button', { class: 'btn sm', type: 'button', onclick: () => {
+      const v = model.settings.interaction.volume;
+      ['pop', 'chime', 'slam'].forEach((k, i) => setTimeout(() => STILL.sound && STILL.sound.play(k, v || 0.5), i * 450));
+    } }, ui.icon('play', 'sm'), 'Test sounds');
+    return h(
+      'div',
+      { class: 'stack', style: { gap: '18px' } },
+      h(
+        'div',
+        { class: 'card pad', style: { paddingTop: '4px', paddingBottom: '4px' } },
+        ui.field('Interactive reactions', 'Reactions and messages respond to your pointer. Turn off to keep them completely click-through.', ui.bind(model, 'interaction.interactive', ui.toggle, { label: 'Interactive reactions' })),
+        ui.field('Hover to pause', 'Rest the pointer on a message to freeze it and read it.', ui.bind(model, 'interaction.hoverPause', ui.toggle, { label: 'Hover to pause' })),
+        ui.field('Quick actions', '♥ favourite (shown more often) · ✓ I’m on it · ✕ dismiss — right on each message.', ui.bind(model, 'interaction.quickActions', ui.toggle, { label: 'Quick actions' })),
+        ui.field('Pop reactions', 'Click any emoji to pop it into confetti.', ui.bind(model, 'interaction.popEmojis', ui.toggle, { label: 'Pop reactions' })),
+        ui.field('Esc clears the screen', null, ui.bind(model, 'interaction.escToClear', ui.toggle, { label: 'Esc clears the screen' }))
+      ),
+      h(
+        'div',
+        { class: 'card pad', style: { paddingTop: '4px', paddingBottom: '4px' } },
+        ui.field('Sounds', 'Soft pops and chimes; a sharp alert in Aggressive mode. Generated on the fly, no audio files.', ui.bind(model, 'interaction.sounds', ui.toggle, { label: 'Sounds' })),
+        ui.field('Volume', null, h('div', { class: 'row', style: { width: '100%', justifyContent: 'flex-end' } }, ui.bind(model, 'interaction.volume', ui.slider, { min: 0, max: 1, step: 0.05, label: 'Volume', format: (v) => Math.round(v * 100) + '%' }), testBtn))
+      )
     );
   };
 

@@ -176,7 +176,9 @@
         h(
           'div',
           null,
-          head('Step 6 · Rhythm', 'Gentle by default.', 'Decide how often STILL. appears. The defaults stay quiet for five minutes and then check in every few minutes.'),
+          head('Step 6 · Rhythm', 'How hard should STILL. push?', 'Gentle stays quiet for five minutes and checks in now and then. Firm and Aggressive bring tough-love lines, giant angry emojis and much faster reminders.'),
+          C.intensityPicker(model),
+          h('div', { style: { height: '18px' } }),
           C.timingForm(model, { compact: true })
         ),
         'The preview plays one appearance using your counts and durations.'

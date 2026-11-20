@@ -40,6 +40,7 @@
    *   onPause()    user asked for a 15 minute pause
    *   onMoment(k)  a mindful moment happened ('thanks' | 'breathe')
    *   onEndFocus() user ended the focus session from the card
+   *   onItemAction(kind, item)  'favorite' | 'done' | 'hide' | 'pop' on a floating item
    */
   STILL.createOverlay = function createOverlay(opts) {
     opts = opts || {};
@@ -124,7 +125,13 @@
       }
     }
 
-    const engine = new STILL.AnimationEngine(layer, { onActivity: (active) => setDock(active) });
+    const engine = new STILL.AnimationEngine(layer, {
+      onActivity: (active) => setDock(active),
+      onItemAction: (kind, item) => {
+        if (kind === 'done' && opts.onMoment) opts.onMoment('thanks');
+        if (opts.onItemAction) opts.onItemAction(kind, item);
+      }
+    });
 
     /* ------------------------------------------------------------ check-in card */
     function closeReminder() {
@@ -141,12 +148,27 @@
       if (typeof rem === 'string') rem = { text: rem, kind: 'time' };
       closeReminder();
       const kind = rem.kind || 'time';
-      const card = el('div', 'reminder kind-' + kind);
-      card.setAttribute('role', 'status');
+      const tough = !!rem.tough;
+      const card = el('div', 'reminder kind-' + kind + (tough ? ' tough' : ''));
+      card.setAttribute('role', tough ? 'alert' : 'status');
       const head = el('div', 'head');
-      const title = kind === 'focus' ? 'Focus session' : kind === 'budget' ? 'Your daily plan' : 'A gentle check-in';
+      const title = tough
+        ? kind === 'focus'
+          ? 'Focus. Now.'
+          : 'Wake-up call'
+        : kind === 'focus'
+          ? 'Focus session'
+          : kind === 'budget'
+            ? 'Your daily plan'
+            : 'A gentle check-in';
       const logo = settings.brand.logo && STILL.media ? STILL.media.node('img:' + settings.brand.logo, 16, settings) : null;
       head.append(logo || el('span', 'dot'), el('span', null, 'STILL. · ' + title));
+      if (tough && rem.icon && STILL.media) {
+        const big = el('div', 'big');
+        const art = STILL.media.node(rem.icon, 92, settings);
+        if (art) big.appendChild(art);
+        card.appendChild(big);
+      }
       const msg = el('p', 'msg', rem.text);
       card.append(head, msg);
       if (rem.sub) card.appendChild(el('div', 'sub', rem.sub));
@@ -169,6 +191,20 @@
             if (opts.onMoment) opts.onMoment('thanks');
           })
         );
+      } else if (tough) {
+        actions.append(
+          button('', '5 more min', () => {
+            closeReminder();
+            api.clear();
+            if (opts.onPause) opts.onPause(5);
+          }),
+          breathe,
+          button('primary', "OK, I'm closing it", () => {
+            closeReminder();
+            api.clear();
+            if (opts.onMoment) opts.onMoment('thanks');
+          })
+        );
       } else {
         actions.append(
           button('', 'Pause 15 min', () => {
@@ -185,7 +221,9 @@
       }
       card.appendChild(actions);
       layer.appendChild(card);
-      placeSide(card, settings.general.showDock ? 62 : 18);
+      if (!tough) placeSide(card, settings.general.showDock ? 62 : 18);
+      engine.sound(tough ? 'alert' : 'chime');
+      if (tough) engine.flash();
       reminderNode = card;
       const arm = () => {
         clearTimeout(reminderT);

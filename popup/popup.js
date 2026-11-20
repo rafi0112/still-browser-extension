@@ -186,6 +186,7 @@
     stats = st;
     $('intentMount').appendChild(I.intentionField(model, { placeholder: 'What would make today a win?' }));
     $('focusMount').appendChild(I.focusCard(model, true));
+    $('intensityMount').appendChild(STILL.components.intensityPicker(model, { compact: true }));
     paint();
     refreshSession();
     model.subscribe(() => paint());
