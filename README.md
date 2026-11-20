@@ -3,7 +3,7 @@
 **Make progress. Without the pressure.**
 *Your goals are still waiting for you.*
 
-https://github.com/user-attachments/assets/a3099182-c5d1-417f-87d3-05be7b6ea1c5
+https://github.com/user-attachments/assets/dbc95afe-76af-4132-a6c1-f6414cc9bfa1
 
 ### দ্রুত সেটআপ (বাংলা)
 
